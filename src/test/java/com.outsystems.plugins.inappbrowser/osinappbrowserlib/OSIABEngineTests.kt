@@ -10,7 +10,6 @@ class OSIABEngineTests {
 
     @Test
     fun test_open_externalBrowserWithoutIssues_doesOpenBrowser() {
-        val url = "https://www.outsystems.com/"
         makeSUT(true).openExternalBrowser(url) { result ->
             assertTrue(result)
         }
@@ -18,7 +17,6 @@ class OSIABEngineTests {
 
     @Test
     fun test_open_externalBrowserWithIssues_doesNotOpenBrowser() {
-        val url = "https://www.outsystems.com/"
         makeSUT(false).openExternalBrowser(url) { result ->
             assertFalse(result)
         }
