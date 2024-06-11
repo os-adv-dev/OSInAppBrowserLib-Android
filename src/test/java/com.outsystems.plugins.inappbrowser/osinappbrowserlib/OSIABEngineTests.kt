@@ -22,7 +22,6 @@ class OSIABEngineTests {
             assertFalse(result)
         }
     }
-
     @Test
     fun test_open_customTabsWithoutIssues_doesOpenBrowser() {
         val routerSpy = OSIABRouterSpy(true)
