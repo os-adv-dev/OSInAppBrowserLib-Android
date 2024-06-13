@@ -1,6 +1,7 @@
 package com.outsystems.plugins.inappbrowser.osinappbrowserlib
 
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABRouterSpy
+import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
 import org.junit.Test
 import org.junit.Assert.*
 
@@ -9,36 +10,34 @@ class OSIABEngineTests {
 
     @Test
     fun test_open_externalBrowserWithoutIssues_doesOpenBrowser() {
-        val routerSpy = OSIABRouterSpy(true)
-        makeSUT().openExternalBrowser(url, routerSpy) { result ->
+        makeSUT(true).openExternalBrowser(url) { result ->
             assertTrue(result)
         }
     }
 
     @Test
     fun test_open_externalBrowserWithIssues_doesNotOpenBrowser() {
-        val routerSpy = OSIABRouterSpy(false)
-        makeSUT().openExternalBrowser(url, routerSpy) { result ->
+        makeSUT(false).openExternalBrowser(url) { result ->
             assertFalse(result)
         }
     }
     @Test
     fun test_open_customTabsWithoutIssues_doesOpenBrowser() {
-        val routerSpy = OSIABRouterSpy(true)
-        makeSUT().openCustomTabs(url, routerSpy) { result ->
+        makeSUT(true).openCustomTabs(url) { result ->
             assertTrue(result)
         }
     }
 
     @Test
     fun test_open_customTabsWithIssues_doesNotOpenBrowser() {
-        val routerSpy = OSIABRouterSpy(false)
-        makeSUT().openCustomTabs(url, routerSpy) { result ->
+        makeSUT(false).openCustomTabs(url) { result ->
             assertFalse(result)
         }
     }
 
-    private fun makeSUT(): OSIABEngine<OSIABRouterSpy, OSIABRouterSpy> {
-        return OSIABEngine()
+    private fun makeSUT(shouldOpenBrowser: Boolean): OSIABEngine {
+        val externalBrowserRouterSpy = OSIABRouterSpy<Unit>(shouldOpenBrowser)
+        val customTabsRouterSpy = OSIABRouterSpy<OSIABCustomTabsOptions>(shouldOpenBrowser)
+        return OSIABEngine(externalBrowserRouterSpy, customTabsRouterSpy)
     }
 }
