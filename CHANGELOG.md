@@ -4,4 +4,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Features
+- Add `OpenInSystemBrowser` (https://outsystemsrd.atlassian.net/browse/RMET-3424).
 - Add `OpenInExternalBrowser` (https://outsystemsrd.atlassian.net/browse/RMET-3422).
