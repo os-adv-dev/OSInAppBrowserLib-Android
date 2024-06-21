@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.routeradapters.OSIABCustomTabsRouterAdapter
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.routeradapters.OSIABExternalBrowserRouterAdapter
 
 class OSIABEngine(
     private val externalBrowserRouter: OSIABRouter<Unit, Boolean>,

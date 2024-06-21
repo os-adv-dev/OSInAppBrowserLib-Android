@@ -19,7 +19,7 @@ class OSIABCustomTabsRouterAdapter(private val context: Context) : OSIABRouter<O
     private var customTabsSession: CustomTabsSession? = null
     private val CHROME_PACKAGE_NAME = "com.android.chrome"
 
-    private fun getDefaultCustomTabsPackageName(): String? {
+    private fun getDefaultCustomTabsPackageName(): String {
         val activityIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://"))
         val resolvedActivityList = context.packageManager.queryIntentActivities(activityIntent, 0)
         val packagesSupportingCustomTabs = mutableListOf<String>()

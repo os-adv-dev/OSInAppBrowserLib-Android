@@ -7,8 +7,8 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsServiceConnection
-import androidx.browser.customtabs.CustomTabsSession
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABAnimation
+import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABBottomSheet
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABViewStyle
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.routeradapters.OSIABCustomTabsRouterAdapter
@@ -68,7 +68,7 @@ class OSIABCustomTabsRouterAdapterTests {
             startAnimation = OSIABAnimation.SLIDE_IN_LEFT,
             exitAnimation = OSIABAnimation.SLIDE_OUT_RIGHT,
             viewStyle = OSIABViewStyle.BOTTOM_SHEET,
-            bottomSheetOptions = null
+            bottomSheetOptions = OSIABBottomSheet(height = 100, isFixed = true)
         )
 
         sut.handleOpen(uri.toString(), options) { success ->
