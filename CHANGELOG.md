@@ -5,4 +5,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Features
 - Add `OpenInSystemBrowser` (https://outsystemsrd.atlassian.net/browse/RMET-3424).
+- Add `OpenInWebView` with current features and default UI (https://outsystemsrd.atlassian.net/browse/RMET-3426).
 - Add `OpenInExternalBrowser` (https://outsystemsrd.atlassian.net/browse/RMET-3422).
