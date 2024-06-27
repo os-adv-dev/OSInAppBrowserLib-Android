@@ -15,9 +15,15 @@ import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABAnimati
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABViewStyle
 
-class OSIABCustomTabsRouterAdapter(private val context: Context) : OSIABRouter<OSIABCustomTabsOptions, Boolean> {
+class OSIABCustomTabsRouterAdapter(
+    private val context: Context,
+    private val options: OSIABCustomTabsOptions? = null
+) : OSIABRouter<Boolean> {
     private var customTabsSession: CustomTabsSession? = null
-    private val CHROME_PACKAGE_NAME = "com.android.chrome"
+
+    companion object {
+        const val CHROME_PACKAGE_NAME = "com.android.chrome"
+    }
 
     private fun getDefaultCustomTabsPackageName(): String {
         val activityIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://"))
@@ -54,7 +60,7 @@ class OSIABCustomTabsRouterAdapter(private val context: Context) : OSIABRouter<O
         })
     }
 
-    override fun handleOpen(url: String, options: OSIABCustomTabsOptions?, completionHandler: (Boolean) -> Unit) {
+    override fun handleOpen(url: String, completionHandler: (Boolean) -> Unit) {
         try {
             val uri = Uri.parse(url)
             if (!context.canOpenURL(uri)) {
@@ -82,19 +88,14 @@ class OSIABCustomTabsRouterAdapter(private val context: Context) : OSIABRouter<O
                     OSIABAnimation.SLIDE_OUT_RIGHT -> builder.setExitAnimations(context, android.R.anim.slide_out_right, android.R.anim.slide_in_left)
                 }
 
-                when (it.viewStyle) {
-                    OSIABViewStyle.BOTTOM_SHEET -> {
-                        it.bottomSheetOptions?.let { bottomSheetOptions ->
-                            if (bottomSheetOptions.isFixed) {
-                                builder.setInitialActivityHeightPx(bottomSheetOptions.height, CustomTabsIntent.ACTIVITY_HEIGHT_FIXED)
-                            }
-                            else {
-                                builder.setInitialActivityHeightPx(bottomSheetOptions.height)
-                            }
+                if (it.viewStyle == OSIABViewStyle.BOTTOM_SHEET) {
+                    it.bottomSheetOptions?.let { bottomSheetOptions ->
+                        if (bottomSheetOptions.isFixed) {
+                            builder.setInitialActivityHeightPx(bottomSheetOptions.height, CustomTabsIntent.ACTIVITY_HEIGHT_FIXED)
                         }
-                    }
-                    OSIABViewStyle.FULL_SCREEN -> {
-                        // Full screen style is the default
+                        else {
+                            builder.setInitialActivityHeightPx(bottomSheetOptions.height)
+                        }
                     }
                 }
             }

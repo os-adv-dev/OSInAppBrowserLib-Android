@@ -37,16 +37,17 @@ class OSIABCustomTabsRouterAdapterTests {
         `when`(context.packageManager).thenReturn(packageManager)
 
         val sut = OSIABCustomTabsRouterAdapter(context)
-        val packageName = "com.android.chrome"
 
-        val resolveInfo = ResolveInfo().apply {
-            activityInfo = ActivityInfo().apply {
-                applicationInfo = ApplicationInfo().apply {
-                    this.packageName = packageName
-                }
-                this.packageName = packageName
-            }
-        }
+        val resolveInfo = ResolveInfo()
+        val activityInfo = ActivityInfo()
+        val applicationInfo = ApplicationInfo()
+
+        applicationInfo.packageName = packageName
+
+        activityInfo.applicationInfo = applicationInfo
+        activityInfo.packageName = packageName
+
+        resolveInfo.activityInfo = activityInfo
 
         `when`(packageManager.queryIntentActivities(any(Intent::class.java), anyInt())).thenReturn(listOf(resolveInfo))
         `when`(packageManager.resolveService(any(Intent::class.java), anyInt())).thenReturn(resolveInfo)
@@ -59,9 +60,6 @@ class OSIABCustomTabsRouterAdapterTests {
     @Test
     fun test_handleOpen_withValidURL_launchesCustomTab() {
         val context = mockContext(useValidURL = true, ableToOpenURL = true)
-        val sut = OSIABCustomTabsRouterAdapter(context)
-        sut.initializeCustomTabsSession()
-
         val options = OSIABCustomTabsOptions(
             showTitle = true,
             hideToolbarOnScroll = true,
@@ -71,7 +69,10 @@ class OSIABCustomTabsRouterAdapterTests {
             bottomSheetOptions = OSIABBottomSheet(height = 100, isFixed = true)
         )
 
-        sut.handleOpen(uri.toString(), options) { success ->
+        val sut = OSIABCustomTabsRouterAdapter(context, options)
+        sut.initializeCustomTabsSession()
+
+        sut.handleOpen(uri.toString()) { success ->
             assertTrue(success)
         }
     }
@@ -83,7 +84,7 @@ class OSIABCustomTabsRouterAdapterTests {
         val sut = OSIABCustomTabsRouterAdapter(context)
         sut.initializeCustomTabsSession()
 
-        sut.handleOpen("invalid_url", null) { success ->
+        sut.handleOpen("invalid_url") { success ->
             assertFalse(success)
         }
     }
@@ -102,7 +103,7 @@ class OSIABCustomTabsRouterAdapterTests {
 
         doThrow(RuntimeException("Exception")).`when`(context).startActivity(any(Intent::class.java))
 
-        sut.handleOpen(uri.toString(), null) { success ->
+        sut.handleOpen(uri.toString()) { success ->
             assertFalse(success)
         }
     }
