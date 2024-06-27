@@ -4,6 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
@@ -14,6 +16,13 @@ import com.outsystems.plugins.inappbrowser.osinappbrowserlib.canOpenURL
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABAnimation
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABViewStyle
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeout
+import kotlin.coroutines.resume
 
 class OSIABCustomTabsRouterAdapter(
     private val context: Context,
@@ -47,7 +56,7 @@ class OSIABCustomTabsRouterAdapter(
         }
     }
 
-    fun initializeCustomTabsSession() {
+    private fun initializeCustomTabsSession() {
         CustomTabsClient.bindCustomTabsService(context, getDefaultCustomTabsPackageName(), object : CustomTabsServiceConnection() {
             override fun onCustomTabsServiceConnected(name: ComponentName, client: CustomTabsClient) {
                 client.warmup(0L)
@@ -60,51 +69,120 @@ class OSIABCustomTabsRouterAdapter(
         })
     }
 
-    override fun handleOpen(url: String, completionHandler: (Boolean) -> Unit) {
-        try {
-            val uri = Uri.parse(url)
-            if (!context.canOpenURL(uri)) {
-                completionHandler(false)
-                return
-            }
-
-            val builder = CustomTabsIntent.Builder(customTabsSession)
-
-            options?.let {
-                builder.setShowTitle(it.showTitle)
-                builder.setUrlBarHidingEnabled(it.hideToolbarOnScroll)
-
-                when (it.startAnimation) {
-                    OSIABAnimation.FADE_IN -> builder.setStartAnimations(context, android.R.anim.fade_in, android.R.anim.fade_out)
-                    OSIABAnimation.FADE_OUT -> builder.setStartAnimations(context, android.R.anim.fade_out, android.R.anim.fade_in)
-                    OSIABAnimation.SLIDE_IN_LEFT -> builder.setStartAnimations(context, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-                    OSIABAnimation.SLIDE_OUT_RIGHT -> builder.setStartAnimations(context, android.R.anim.slide_out_right, android.R.anim.slide_in_left)
-                }
-
-                when (it.exitAnimation) {
-                    OSIABAnimation.FADE_IN -> builder.setExitAnimations(context, android.R.anim.fade_in, android.R.anim.fade_out)
-                    OSIABAnimation.FADE_OUT -> builder.setExitAnimations(context, android.R.anim.fade_out, android.R.anim.fade_in)
-                    OSIABAnimation.SLIDE_IN_LEFT -> builder.setExitAnimations(context, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-                    OSIABAnimation.SLIDE_OUT_RIGHT -> builder.setExitAnimations(context, android.R.anim.slide_out_right, android.R.anim.slide_in_left)
-                }
-
-                if (it.viewStyle == OSIABViewStyle.BOTTOM_SHEET) {
-                    it.bottomSheetOptions?.let { bottomSheetOptions ->
-                        if (bottomSheetOptions.isFixed) {
-                            builder.setInitialActivityHeightPx(bottomSheetOptions.height, CustomTabsIntent.ACTIVITY_HEIGHT_FIXED)
-                        }
-                        else {
-                            builder.setInitialActivityHeightPx(bottomSheetOptions.height)
-                        }
+    private suspend fun waitForCustomTabsSession() {
+        return suspendCancellableCoroutine { continuation ->
+            val handler = Handler(Looper.getMainLooper())
+            val checkSessionRunnable = object : Runnable {
+                override fun run() {
+                    if (customTabsSession != null) {
+                        continuation.resume(Unit)
+                    } else {
+                        handler.postDelayed(this, 100)
                     }
                 }
             }
+            handler.post(checkSessionRunnable)
+            continuation.invokeOnCancellation {
+                handler.removeCallbacks(checkSessionRunnable)
+            }
+        }
+    }
 
-            val customTabsIntent = builder.build()
-            customTabsIntent.launchUrl(context, uri)
-            completionHandler(true)
-        } catch (e: Exception) {
-            completionHandler(false)
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun handleOpen(url: String, completionHandler: (Boolean) -> Unit) {
+        GlobalScope.launch(Dispatchers.Main) {
+            try {
+                val uri = Uri.parse(url)
+                if (!context.canOpenURL(uri)) {
+                    completionHandler(false)
+                    return@launch
+                }
+
+                if (null == customTabsSession) {
+                    withTimeout(2000) {
+                        initializeCustomTabsSession()
+                        waitForCustomTabsSession()
+                    }
+                }
+
+                val builder = CustomTabsIntent.Builder(customTabsSession)
+
+                options?.let {
+                    builder.setShowTitle(it.showTitle)
+                    builder.setUrlBarHidingEnabled(it.hideToolbarOnScroll)
+
+                    when (it.startAnimation) {
+                        OSIABAnimation.FADE_IN -> builder.setStartAnimations(
+                            context,
+                            android.R.anim.fade_in,
+                            android.R.anim.fade_out
+                        )
+
+                        OSIABAnimation.FADE_OUT -> builder.setStartAnimations(
+                            context,
+                            android.R.anim.fade_out,
+                            android.R.anim.fade_in
+                        )
+
+                        OSIABAnimation.SLIDE_IN_LEFT -> builder.setStartAnimations(
+                            context,
+                            android.R.anim.slide_in_left,
+                            android.R.anim.slide_out_right
+                        )
+
+                        OSIABAnimation.SLIDE_OUT_RIGHT -> builder.setStartAnimations(
+                            context,
+                            android.R.anim.slide_out_right,
+                            android.R.anim.slide_in_left
+                        )
+                    }
+
+                    when (it.exitAnimation) {
+                        OSIABAnimation.FADE_IN -> builder.setExitAnimations(
+                            context,
+                            android.R.anim.fade_in,
+                            android.R.anim.fade_out
+                        )
+
+                        OSIABAnimation.FADE_OUT -> builder.setExitAnimations(
+                            context,
+                            android.R.anim.fade_out,
+                            android.R.anim.fade_in
+                        )
+
+                        OSIABAnimation.SLIDE_IN_LEFT -> builder.setExitAnimations(
+                            context,
+                            android.R.anim.slide_in_left,
+                            android.R.anim.slide_out_right
+                        )
+
+                        OSIABAnimation.SLIDE_OUT_RIGHT -> builder.setExitAnimations(
+                            context,
+                            android.R.anim.slide_out_right,
+                            android.R.anim.slide_in_left
+                        )
+                    }
+
+                    if (it.viewStyle == OSIABViewStyle.BOTTOM_SHEET) {
+                        it.bottomSheetOptions?.let { bottomSheetOptions ->
+                            if (bottomSheetOptions.isFixed) {
+                                builder.setInitialActivityHeightPx(
+                                    bottomSheetOptions.height,
+                                    CustomTabsIntent.ACTIVITY_HEIGHT_FIXED
+                                )
+                            } else {
+                                builder.setInitialActivityHeightPx(bottomSheetOptions.height)
+                            }
+                        }
+                    }
+                }
+
+                val customTabsIntent = builder.build()
+                customTabsIntent.launchUrl(context, uri)
+                completionHandler(true)
+            } catch (e: Exception) {
+                completionHandler(false)
+            }
         }
     }
 }

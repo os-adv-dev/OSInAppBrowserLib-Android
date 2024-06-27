@@ -6,7 +6,6 @@ import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.ResolveInfo
 import android.net.Uri
-import androidx.browser.customtabs.CustomTabsServiceConnection
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABAnimation
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABBottomSheet
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
@@ -20,7 +19,6 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.robolectric.RobolectricTestRunner
 
@@ -29,33 +27,6 @@ class OSIABCustomTabsRouterAdapterTests {
     private val activityName = "TestActivity"
     private val packageName = "com.outsystems.plugins.inappbrowser.osinappbrowserlib"
     private val uri = Uri.parse("https://www.outsystems.com/")
-
-    @Test
-    fun test_initializeCustomTabsSession_withValidPackageName_bindsService() {
-        val context = mock(Context::class.java)
-        val packageManager = mock(android.content.pm.PackageManager::class.java)
-        `when`(context.packageManager).thenReturn(packageManager)
-
-        val sut = OSIABCustomTabsRouterAdapter(context)
-
-        val resolveInfo = ResolveInfo()
-        val activityInfo = ActivityInfo()
-        val applicationInfo = ApplicationInfo()
-
-        applicationInfo.packageName = packageName
-
-        activityInfo.applicationInfo = applicationInfo
-        activityInfo.packageName = packageName
-
-        resolveInfo.activityInfo = activityInfo
-
-        `when`(packageManager.queryIntentActivities(any(Intent::class.java), anyInt())).thenReturn(listOf(resolveInfo))
-        `when`(packageManager.resolveService(any(Intent::class.java), anyInt())).thenReturn(resolveInfo)
-
-        sut.initializeCustomTabsSession()
-
-        verify(context).bindService(any(Intent::class.java), any(CustomTabsServiceConnection::class.java), anyInt())
-    }
 
     @Test
     fun test_handleOpen_withValidURL_launchesCustomTab() {
@@ -70,7 +41,6 @@ class OSIABCustomTabsRouterAdapterTests {
         )
 
         val sut = OSIABCustomTabsRouterAdapter(context, options)
-        sut.initializeCustomTabsSession()
 
         sut.handleOpen(uri.toString()) { success ->
             assertTrue(success)
@@ -82,7 +52,6 @@ class OSIABCustomTabsRouterAdapterTests {
     fun test_handleOpen_withInvalidURL_returnsFalse() {
         val context = mockContext(useValidURL = false, ableToOpenURL = false)
         val sut = OSIABCustomTabsRouterAdapter(context)
-        sut.initializeCustomTabsSession()
 
         sut.handleOpen("invalid_url") { success ->
             assertFalse(success)
@@ -97,7 +66,6 @@ class OSIABCustomTabsRouterAdapterTests {
         `when`(context.packageManager).thenReturn(packageManager)
 
         val sut = OSIABCustomTabsRouterAdapter(context)
-        sut.initializeCustomTabsSession()
 
         `when`(packageManager.resolveActivity(any(Intent::class.java), anyInt())).thenReturn(ResolveInfo())
 
