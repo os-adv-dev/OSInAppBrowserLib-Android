@@ -59,26 +59,26 @@ class OSIABCustomTabsRouterAdapter(
             when (it.exitAnimation) {
                 OSIABAnimation.FADE_IN -> builder.setExitAnimations(
                     context,
-                    android.R.anim.fade_in,
-                    android.R.anim.fade_out
-                )
-
-                OSIABAnimation.FADE_OUT -> builder.setExitAnimations(
-                    context,
                     android.R.anim.fade_out,
                     android.R.anim.fade_in
                 )
 
+                OSIABAnimation.FADE_OUT -> builder.setExitAnimations(
+                    context,
+                    android.R.anim.fade_in,
+                    android.R.anim.fade_out
+                )
+
                 OSIABAnimation.SLIDE_IN_LEFT -> builder.setExitAnimations(
                     context,
-                    android.R.anim.slide_in_left,
-                    android.R.anim.slide_out_right
+                    android.R.anim.slide_out_right,
+                    android.R.anim.slide_in_left
                 )
 
                 OSIABAnimation.SLIDE_OUT_RIGHT -> builder.setExitAnimations(
                     context,
-                    android.R.anim.slide_out_right,
-                    android.R.anim.slide_in_left
+                    android.R.anim.slide_in_left,
+                    android.R.anim.slide_out_right
                 )
             }
 
