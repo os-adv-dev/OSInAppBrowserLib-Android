@@ -6,11 +6,11 @@
 
     <application
         android:allowBackup="false"
-        android:usesCleartextTraffic="false">
+        android:supportsRtl="true">
         <activity
             android:name=".views.OSIABWebViewActivity"
             android:exported="false"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|uiMode"
             android:label="OSIABWebViewActivity"
             android:theme="@style/AppTheme.NoActionBar" />
     </application>

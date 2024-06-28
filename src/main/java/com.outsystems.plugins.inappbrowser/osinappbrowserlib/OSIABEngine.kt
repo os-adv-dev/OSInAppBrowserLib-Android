@@ -42,7 +42,11 @@ class OSIABEngine {
      * @param url URL to be opened.
      * @param completionHandler The callback with the result of opening the url using the WebView.
      */
-    fun openWebView(webViewRouter: OSIABRouter<Boolean>, url: String, completionHandler: (Boolean) -> Unit) {
+    fun openWebView(
+        webViewRouter: OSIABRouter<Boolean>,
+        url: String,
+        completionHandler: (Boolean) -> Unit
+    ) {
         return webViewRouter.handleOpen(url, completionHandler)
     }
 }
