@@ -9,8 +9,8 @@
         android:supportsRtl="true">
         <activity
             android:name=".views.OSIABWebViewActivity"
-            android:exported="false"
             android:configChanges="orientation|screenSize|uiMode"
+            android:exported="false"
             android:label="OSIABWebViewActivity"
             android:theme="@style/AppTheme.WebView" />
     </application>
@@ -25,6 +25,10 @@
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="https" />
+        </intent>
+
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
     </queries>
 </manifest>

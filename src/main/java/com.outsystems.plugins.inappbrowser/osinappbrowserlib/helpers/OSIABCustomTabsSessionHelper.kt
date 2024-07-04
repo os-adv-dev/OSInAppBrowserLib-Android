@@ -3,31 +3,25 @@ package com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.browser.customtabs.CustomTabsCallback
 import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsService
 import androidx.browser.customtabs.CustomTabsServiceConnection
 import androidx.browser.customtabs.CustomTabsSession
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.coroutines.resume
 
 class OSIABCustomTabsSessionHelper : OSIABCustomTabsSessionHelperInterface {
-
-    private var customTabsSession: CustomTabsSession? = null
-
     companion object {
         const val CHROME_PACKAGE_NAME = "com.android.chrome"
     }
 
-    private fun getDefaultCustomTabsPackageName(context: Context): String {
+    private fun getDefaultCustomTabsPackageName(context: Context): String? {
         val activityIntent = Intent(Intent.ACTION_VIEW, Uri.parse("http://"))
-        val resolvedActivityList = context.packageManager.queryIntentActivities(activityIntent, 0)
-        val packagesSupportingCustomTabs = mutableListOf<String>()
+        val resolvedActivityList =
+            context.packageManager.queryIntentActivities(activityIntent, PackageManager.MATCH_ALL)
+        var result: String? = null
 
         for (info in resolvedActivityList) {
             val serviceIntent = Intent().apply {
@@ -35,51 +29,49 @@ class OSIABCustomTabsSessionHelper : OSIABCustomTabsSessionHelperInterface {
                 `package` = info.activityInfo.packageName
             }
             if (context.packageManager.resolveService(serviceIntent, 0) != null) {
-                packagesSupportingCustomTabs.add(info.activityInfo.packageName)
+                if (info.activityInfo.packageName != CHROME_PACKAGE_NAME) {
+                    result = info.activityInfo.packageName
+                    break
+                }
             }
         }
 
-        return if (packagesSupportingCustomTabs.isNotEmpty()) {
-            packagesSupportingCustomTabs[0]
-        } else {
-            CHROME_PACKAGE_NAME
-        }
+        val packageName = CustomTabsClient.getPackageName(
+            context,
+            resolvedActivityList.map { it.activityInfo.packageName },
+            false
+        )
+
+        return packageName
     }
 
-    private fun initializeCustomTabsSession(context: Context, onEventReceived: (Int) -> Unit) {
+    private fun initializeCustomTabsSession(
+        context: Context,
+        packageName: String,
+        onEventReceived: (Int) -> Unit,
+        customTabsSessionCallback: (CustomTabsSession?) -> Unit
+    ) {
         CustomTabsClient.bindCustomTabsService(
             context,
-            getDefaultCustomTabsPackageName(context),
+            packageName,
             object : CustomTabsServiceConnection() {
-                override fun onCustomTabsServiceConnected(name: ComponentName, client: CustomTabsClient) {
+                override fun onCustomTabsServiceConnected(
+                    name: ComponentName,
+                    client: CustomTabsClient
+                ) {
                     client.warmup(0L)
-                    customTabsSession = client.newSession(CustomTabsCallbackImpl { onEventReceived(it) })
+                    customTabsSessionCallback(client.newSession(CustomTabsCallbackImpl {
+                        onEventReceived(
+                            it
+                        )
+                    }))
                 }
 
                 override fun onServiceDisconnected(name: ComponentName) {
-                    customTabsSession = null
+                    customTabsSessionCallback(null)
                 }
             }
         )
-    }
-
-    private suspend fun waitForCustomTabsSessionToConnect() {
-        return suspendCancellableCoroutine { continuation ->
-            val handler = Handler(Looper.getMainLooper())
-            val checkSessionRunnable = object : Runnable {
-                override fun run() {
-                    if (customTabsSession != null) {
-                        continuation.resume(Unit)
-                    } else {
-                        handler.postDelayed(this, 100)
-                    }
-                }
-            }
-            handler.post(checkSessionRunnable)
-            continuation.invokeOnCancellation {
-                handler.removeCallbacks(checkSessionRunnable)
-            }
-        }
     }
 
     private inner class CustomTabsCallbackImpl(private val onEventReceived: (Int) -> Unit) :
@@ -95,14 +87,19 @@ class OSIABCustomTabsSessionHelper : OSIABCustomTabsSessionHelperInterface {
      * @param context Context to use when initializing the CustomTabsSession
      * @param onEventReceived Callback to send the session events (e.g. navigation finished)
      */
-    override suspend fun generateNewCustomTabsSession(context: Context, onEventReceived: (Int) -> Unit): CustomTabsSession? {
-        customTabsSession = null
-
-        withTimeoutOrNull(2000) {
-            initializeCustomTabsSession(context) { onEventReceived(it) }
-            waitForCustomTabsSessionToConnect()
-        }
-
-        return customTabsSession
+    override suspend fun generateNewCustomTabsSession(
+        context: Context,
+        onEventReceived: (Int) -> Unit,
+        customTabsSessionCallback: (CustomTabsSession?) -> Unit
+    ) {
+        val packageName = getDefaultCustomTabsPackageName(context)
+        packageName?.let { packageName ->
+            initializeCustomTabsSession(
+                context,
+                packageName,
+                onEventReceived,
+                customTabsSessionCallback
+            )
+        } ?: customTabsSessionCallback(null)
     }
 }

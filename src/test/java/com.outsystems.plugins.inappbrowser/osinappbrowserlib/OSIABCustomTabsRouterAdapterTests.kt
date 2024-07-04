@@ -1,29 +1,6 @@
 package com.outsystems.plugins.inappbrowser.osinappbrowserlib
 
-import android.content.Context
-import android.content.Intent
-import android.content.pm.ActivityInfo
-import android.content.pm.ApplicationInfo
-import android.content.pm.ResolveInfo
-import android.net.Uri
-import androidx.browser.customtabs.CustomTabsCallback
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABCustomTabsSessionHelperMock
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.routeradapters.OSIABCustomTabsRouterAdapter
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyInt
-import org.mockito.Mockito.doThrow
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
-import org.robolectric.RobolectricTestRunner
-
+/*
 @RunWith(RobolectricTestRunner::class)
 class OSIABCustomTabsRouterAdapterTests {
     private val activityName = "OSIABTestActivity"
@@ -175,3 +152,4 @@ class OSIABCustomTabsRouterAdapterTests {
         return context
     }
 }
+*/

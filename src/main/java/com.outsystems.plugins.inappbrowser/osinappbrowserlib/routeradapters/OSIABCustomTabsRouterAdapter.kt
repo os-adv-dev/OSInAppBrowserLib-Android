@@ -23,12 +23,10 @@ class OSIABCustomTabsRouterAdapter(
     private val onBrowserPageLoaded: () -> Unit,
     private val onBrowserFinished: () -> Unit
 ) : OSIABRouter<Boolean> {
-    private var customTabsSession: CustomTabsSession? = null
-
     // for the browserPageLoaded event, which we only want to trigger on the first URL loaded in the CustomTabs instance
     private var isFirstLoad = true
 
-    private fun buildCustomTabsIntent(): CustomTabsIntent {
+    private fun buildCustomTabsIntent(customTabsSession: CustomTabsSession?): CustomTabsIntent {
         val builder = CustomTabsIntent.Builder(customTabsSession)
         builder.setShowTitle(options.showTitle)
         builder.setUrlBarHidingEnabled(options.hideToolbarOnScroll)
@@ -110,8 +108,9 @@ class OSIABCustomTabsRouterAdapter(
                     return@launch
                 }
 
-                if (null == customTabsSession) {
-                    customTabsSession = customTabsSessionHelper.generateNewCustomTabsSession(context) { event ->
+                customTabsSessionHelper.generateNewCustomTabsSession(
+                    context,
+                    onEventReceived = { event ->
                         when (event) {
                             CustomTabsCallback.NAVIGATION_FINISHED -> {
                                 if (isFirstLoad) {
@@ -119,16 +118,18 @@ class OSIABCustomTabsRouterAdapter(
                                     isFirstLoad = false
                                 }
                             }
+
                             CustomTabsCallback.TAB_HIDDEN -> {
                                 onBrowserFinished()
                             }
                         }
+                    },
+                    customTabsSessionCallback = {
+                        val customTabsIntent = buildCustomTabsIntent(it)
+                        customTabsIntent.launchUrl(context, uri)
+                        completionHandler(true)
                     }
-                }
-
-                val customTabsIntent = buildCustomTabsIntent()
-                customTabsIntent.launchUrl(context, uri)
-                completionHandler(true)
+                )
             } catch (e: Exception) {
                 completionHandler(false)
             }
