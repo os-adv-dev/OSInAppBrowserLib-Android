@@ -6,7 +6,7 @@
     <!-- URL Text View -->
     <TextView
         android:id="@id/url_text"
-        style="@style/URLBar"
+        android:theme="@style/URLBar"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:gravity="center"
@@ -31,7 +31,7 @@
         <!-- Previous Button -->
         <ImageButton
             android:id="@id/start_button"
-            style="@style/NavigationButton.Back"
+            android:theme="@style/NavigationButton.Back"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:contentDescription="@string/start_button"
@@ -43,7 +43,7 @@
         <!-- Next Button -->
         <ImageButton
             android:id="@id/end_button"
-            style="@style/NavigationButton.Forward"
+            android:theme="@style/NavigationButton.Forward"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:contentDescription="@string/end_button"
@@ -52,6 +52,5 @@
             app:layout_constraintStart_toStartOf="@id/start_button"
             app:layout_constraintTop_toTopOf="parent" />
     </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

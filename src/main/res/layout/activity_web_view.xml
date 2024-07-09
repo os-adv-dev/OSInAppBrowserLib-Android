@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:theme="@style/AppTheme.WebView"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fitsSystemWindows="true"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:theme="@style/AppTheme.WebView">
 
     <!-- Toolbar -->
 
@@ -15,7 +15,8 @@
         style="@style/InAppToolBar"
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
-        app:contentInsetStart="0dp">
+        app:contentInsetStart="0dp"
+        android:theme="@style/AppTheme.WebView">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -26,7 +27,7 @@
 
             <TextView
                 android:id="@id/close_button"
-                style="@style/CloseButton"
+                android:theme="@style/CloseButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/close_button"
@@ -39,13 +40,14 @@
             <include
                 android:id="@+id/navigation_view"
                 layout="@layout/navigation_view"
-                app:layout_constraintHorizontal_weight="2"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/close_button" />
+                app:layout_constraintHorizontal_weight="2"
+                app:layout_constraintStart_toEndOf="@id/close_button"
+                app:layout_constraintTop_toTopOf="parent"
+                android:theme="@style/AppTheme.WebView" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -57,13 +59,25 @@
         android:layout_height="0dp"
         android:layout_weight="1" />
 
+    <!-- Error view -->
+    <include
+        android:id="@+id/error_layout"
+        layout="@layout/error_layout"
+        android:visibility="gone" />
+
+    <!-- Loading view -->
+    <include
+        android:id="@+id/loading_layout"
+        layout="@layout/loading_layout"
+        android:visibility="gone" />
+
     <!-- Bottom Toolbar -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/bottom_toolbar"
-        android:visibility="invisible"
+        style="@style/InAppToolBar"
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
-        style="@style/InAppToolBar"
+        android:visibility="invisible"
         app:contentInsetStart="0dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
