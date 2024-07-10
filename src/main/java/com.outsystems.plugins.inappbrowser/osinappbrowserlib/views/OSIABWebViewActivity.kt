@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.R
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABUIHelper
+import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABWebViewEventBus
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABToolbarPosition
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABWebViewOptions
 import kotlinx.coroutines.launch
@@ -49,6 +50,8 @@ class OSIABWebViewActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        OSIABWebViewEventBus.postEvent(this)
 
         appName = applicationInfo.loadLabel(packageManager).toString()
 

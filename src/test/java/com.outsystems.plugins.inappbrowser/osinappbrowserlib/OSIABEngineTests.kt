@@ -52,6 +52,33 @@ class OSIABEngineTests {
         }
     }
 
+    @Test
+    fun test_close_noBrowserView_doesThrowError() {
+        makeSUT(true).close {
+            assertFalse(it)
+        }
+    }
+
+    @Test
+    fun test_close_webView_doesCloseView() {
+        val sut = makeSUT(true)
+        sut.openWebView(webViewRouterSpy, url) {
+            sut.close { didClose ->
+                assertTrue(didClose)
+            }
+        }
+    }
+
+    @Test
+    fun test_close_customTabs_doesCloseView() {
+        val sut = makeSUT(true)
+        sut.openCustomTabs(customTabsRouterSpy, url) {
+            sut.close { didClose ->
+                assertTrue(didClose)
+            }
+        }
+    }
+
     private fun makeSUT(shouldOpenBrowser: Boolean): OSIABEngine {
         customTabsRouterSpy = OSIABRouterSpy(shouldOpenBrowser)
         externalBrowserRouterSpy = OSIABRouterSpy(shouldOpenBrowser)
