@@ -10,6 +10,7 @@ import androidx.browser.customtabs.CustomTabsCallback
 import androidx.browser.customtabs.CustomTabsClient
 import androidx.browser.customtabs.CustomTabsServiceConnection
 import androidx.browser.customtabs.CustomTabsSession
+import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
 
 class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
     private fun getDefaultCustomTabsPackageName(context: Context): String? {
@@ -25,7 +26,7 @@ class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
     private fun initializeCustomTabsSession(
         context: Context,
         packageName: String,
-        onEventReceived: (Int) -> Unit,
+        onEventReceived: (OSIABEvents) -> Unit,
         customTabsSessionCallback: (CustomTabsSession?) -> Unit
     ) {
         CustomTabsClient.bindCustomTabsService(
@@ -46,17 +47,22 @@ class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
         )
     }
 
-    private inner class CustomTabsCallbackImpl(private val onEventReceived: (Int) -> Unit) :
+    private inner class CustomTabsCallbackImpl(private val onEventReceived: (OSIABEvents) -> Unit) :
         CustomTabsCallback() {
         override fun onNavigationEvent(navigationEvent: Int, extras: Bundle?) {
             super.onNavigationEvent(navigationEvent, extras)
-            onEventReceived(navigationEvent)
+            val browserEvent = when (navigationEvent) {
+                NAVIGATION_FINISHED -> OSIABEvents.BrowserPageLoaded
+                TAB_HIDDEN -> OSIABEvents.BrowserFinished
+                else -> return
+            }
+            onEventReceived(browserEvent)
         }
     }
 
     override suspend fun generateNewCustomTabsSession(
         context: Context,
-        onEventReceived: (Int) -> Unit,
+        onEventReceived: (OSIABEvents) -> Unit,
         customTabsSessionCallback: (CustomTabsSession?) -> Unit
     ) {
         val packageName = getDefaultCustomTabsPackageName(context)

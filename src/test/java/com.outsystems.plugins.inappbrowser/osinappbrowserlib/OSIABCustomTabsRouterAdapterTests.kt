@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
@@ -107,6 +108,58 @@ class OSIABCustomTabsRouterAdapterTests {
 
             sut.handleOpen(uri.toString()) { success ->
                 assertFalse(success)
+            }
+        }
+    }
+
+    @Test
+    fun test_handleOpen_withValidURL_launchesCustomTab_when_browserPageLoaded_then_browserPageLoadedTriggered() {
+        runTest(StandardTestDispatcher()) {
+            val context = mockContext(useValidURL = true, ableToOpenURL = true)
+            val sut = OSIABCustomTabsRouterAdapter(
+                context = context,
+                lifecycleOwner = lifecycleOwner,
+                lifecycleScope = this,
+                customTabsSessionHelper = OSIABCustomTabsSessionHelperMock().apply {
+                    eventToReturn = OSIABEvents.BrowserPageLoaded
+                },
+                options = options,
+                onBrowserPageLoaded = {
+                    assertTrue(true) // onBrowserPageLoaded was called
+                },
+                onBrowserFinished = {
+                    fail()
+                }
+            )
+
+            sut.handleOpen(uri.toString()) { success ->
+                assertTrue(success)
+            }
+        }
+    }
+
+    @Test
+    fun test_handleOpen_withValidURL_launchesCustomTab_when_browserFinished_then_browserFinishedTriggered() {
+        runTest(StandardTestDispatcher()) {
+            val context = mockContext(useValidURL = true, ableToOpenURL = true)
+            val sut = OSIABCustomTabsRouterAdapter(
+                context = context,
+                lifecycleOwner = lifecycleOwner,
+                lifecycleScope = this,
+                customTabsSessionHelper = OSIABCustomTabsSessionHelperMock().apply {
+                    eventToReturn = OSIABEvents.BrowserFinished
+                },
+                options = options,
+                onBrowserPageLoaded = {
+                    fail()
+                },
+                onBrowserFinished = {
+                    assertTrue(true) // onBrowserFinished was called
+                }
+            )
+
+            sut.handleOpen(uri.toString()) { success ->
+                assertTrue(success)
             }
         }
     }

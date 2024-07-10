@@ -8,7 +8,5 @@ class OSIABRouterSpy(private val shouldOpenBrowser: Boolean) : OSIABRouter<Boole
         completionHandler(shouldOpenBrowser)
     }
 
-    override fun close() {
-        return
-    }
+    override fun close() {}
 }
