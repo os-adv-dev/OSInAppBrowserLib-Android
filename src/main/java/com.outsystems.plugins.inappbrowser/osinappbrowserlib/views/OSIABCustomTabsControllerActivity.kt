@@ -52,7 +52,7 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
         super.onDestroy()
     }
 
-    /** Responsible for sending events using Kotlin Flows.
+    /** Responsible for sending Custom Tabs Activity Events (READY, DESTROYED) to the event bus.
      * @param event object to broadcast to the event bus
      */
     @OptIn(DelicateCoroutinesApi::class)

@@ -42,18 +42,9 @@ class OSIABCustomTabsRouterAdapter(
         var closeEventJob: Job? = null
 
         closeEventJob = flowHelper.listenToEvents(lifecycleScope) { event ->
-            when (event) {
-                is OSIABEvents.OSIABCustomTabsEvent -> {
-                    if(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED) {
-                        completionHandler(true)
-                    }
-                    else {
-                        completionHandler(false)
-
-                    }
-                    closeEventJob?.cancel()
-                }
-                else -> {}
+            if(event is OSIABEvents.OSIABCustomTabsEvent) {
+                completionHandler(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED)
+                closeEventJob?.cancel()
             }
         }
 
@@ -120,13 +111,14 @@ class OSIABCustomTabsRouterAdapter(
 
         if (options.viewStyle == OSIABViewStyle.BOTTOM_SHEET) {
             options.bottomSheetOptions?.let { bottomSheetOptions ->
+                val height = bottomSheetOptions.height.coerceAtLeast(1)
                 if (bottomSheetOptions.isFixed) {
                     builder.setInitialActivityHeightPx(
-                        bottomSheetOptions.height.coerceAtLeast(1),
+                        height,
                         CustomTabsIntent.ACTIVITY_HEIGHT_FIXED
                     )
                 } else {
-                    builder.setInitialActivityHeightPx(bottomSheetOptions.height.coerceAtLeast(1))
+                    builder.setInitialActivityHeightPx(height)
                 }
             }
         }
