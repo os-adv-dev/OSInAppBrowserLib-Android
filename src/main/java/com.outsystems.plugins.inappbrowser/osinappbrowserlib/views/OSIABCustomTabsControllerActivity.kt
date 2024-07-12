@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents.OSIABCustomTabsEvent
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -20,9 +19,7 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
         const val ACTION_CLOSE_CUSTOM_TABS = "com.outsystems.plugins.inappbrowser.osinappbrowserlib.ACTION_CLOSE_CUSTOM_TABS"
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    private fun setup(intent: Intent) {
         window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
         window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
@@ -38,22 +35,14 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setup(intent)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
-        window.setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
-
-        if (intent.getBooleanExtra(ACTION_CLOSE_CUSTOM_TABS, false)) {
-            finish()
-        }
-        else {
-            sendCustomTabsEvent(
-                OSIABCustomTabsEvent(ACTION_CUSTOM_TABS_READY, this@OSIABCustomTabsControllerActivity)
-            )
-        }
+        setup(intent)
     }
 
     override fun onDestroy() {
