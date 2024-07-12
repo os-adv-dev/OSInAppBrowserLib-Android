@@ -29,9 +29,15 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
             finish()
         }
         else {
-            sendCustomTabsEvent(
-                OSIABCustomTabsEvent(ACTION_CUSTOM_TABS_READY, this@OSIABCustomTabsControllerActivity)
-            )
+            intent.getStringExtra(OSIABEvents.EXTRA_BROWSER_ID)?.let { browserId ->
+                sendCustomTabsEvent(
+                    OSIABCustomTabsEvent(
+                        browserId = browserId,
+                        action = ACTION_CUSTOM_TABS_READY,
+                        context = this@OSIABCustomTabsControllerActivity
+                    )
+                )
+            }
         }
     }
 
@@ -46,9 +52,15 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        sendCustomTabsEvent(
-            OSIABCustomTabsEvent(ACTION_CUSTOM_TABS_DESTROYED, this@OSIABCustomTabsControllerActivity)
-        )
+        intent.getStringExtra(OSIABEvents.EXTRA_BROWSER_ID)?.let { browserId ->
+            sendCustomTabsEvent(
+                OSIABCustomTabsEvent(
+                    browserId = browserId,
+                    action = ACTION_CUSTOM_TABS_DESTROYED,
+                    context = this@OSIABCustomTabsControllerActivity
+                )
+            )
+        }
         super.onDestroy()
     }
 

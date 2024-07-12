@@ -53,6 +53,7 @@ class OSIABWebViewActivity : AppCompatActivity() {
     private lateinit var loadingView: View
     private lateinit var options: OSIABWebViewOptions
     private lateinit var appName: String
+    private lateinit var browserId: String
 
     // for the browserPageLoaded event, which we only want to trigger on the first URL loaded in the WebView
     private var isFirstLoad = true
@@ -99,7 +100,9 @@ class OSIABWebViewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        sendWebViewEvent(OSIABWebViewEvent(this@OSIABWebViewActivity))
+        browserId = intent.getStringExtra(OSIABEvents.EXTRA_BROWSER_ID) ?: ""
+
+        sendWebViewEvent(OSIABWebViewEvent(browserId,this@OSIABWebViewActivity))
 
         appName = applicationInfo.loadLabel(packageManager).toString()
 
@@ -127,7 +130,7 @@ class OSIABWebViewActivity : AppCompatActivity() {
         closeButton = findViewById(R.id.close_button)
         closeButton.text = options.closeButtonText.ifBlank { "Close" }
         closeButton.setOnClickListener {
-            sendWebViewEvent(OSIABEvents.BrowserFinished)
+            sendWebViewEvent(OSIABEvents.BrowserFinished(browserId))
             webView.destroy()
             finish()
         }
@@ -245,7 +248,7 @@ class OSIABWebViewActivity : AppCompatActivity() {
             hideErrorScreen()
             webView.goBack()
         } else {
-            sendWebViewEvent(OSIABEvents.BrowserFinished)
+            sendWebViewEvent(OSIABEvents.BrowserFinished(browserId))
             webView.destroy()
             onBackPressedDispatcher.onBackPressed()
         }
@@ -301,7 +304,7 @@ class OSIABWebViewActivity : AppCompatActivity() {
 
         override fun onPageFinished(view: WebView?, url: String?) {
             if (isFirstLoad && !hasLoadError) {
-                sendWebViewEvent(OSIABEvents.BrowserPageLoaded)
+                sendWebViewEvent(OSIABEvents.BrowserPageLoaded(browserId))
                 isFirstLoad = false
             }
 

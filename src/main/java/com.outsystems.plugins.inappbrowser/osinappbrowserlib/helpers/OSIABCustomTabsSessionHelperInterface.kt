@@ -8,11 +8,13 @@ interface OSIABCustomTabsSessionHelperInterface {
 
     /**
      * Generates a new CustomTabsSession instance
+     * @param browserId Identifier for the browser instance to emit events to
      * @param context Context to use when initializing the CustomTabsSession
      * @param lifecycleScope Coroutine scope to use to post browser events
      * @param customTabsSessionCallback Callback to send the session instance (null if failed)
      */
     suspend fun generateNewCustomTabsSession(
+        browserId: String,
         context: Context,
         lifecycleScope: CoroutineScope,
         customTabsSessionCallback: (CustomTabsSession?) -> Unit

@@ -17,6 +17,7 @@ import com.outsystems.plugins.inappbrowser.osinappbrowserlib.views.OSIABCustomTa
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class OSIABCustomTabsRouterAdapter(
     context: Context,
@@ -35,13 +36,15 @@ class OSIABCustomTabsRouterAdapter(
     onBrowserFinished = onBrowserFinished
 ) {
 
+    private val browserId = UUID.randomUUID().toString()
+
     // for the browserPageLoaded event, which we only want to trigger on the first URL loaded in the CustomTabs instance
     private var isFirstLoad = true
 
     override fun close(completionHandler: (Boolean) -> Unit) {
         var closeEventJob: Job? = null
 
-        closeEventJob = flowHelper.listenToEvents(lifecycleScope) { event ->
+        closeEventJob = flowHelper.listenToEvents(browserId, lifecycleScope) { event ->
             if(event is OSIABEvents.OSIABCustomTabsEvent) {
                 completionHandler(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED)
                 closeEventJob?.cancel()
@@ -138,12 +141,13 @@ class OSIABCustomTabsRouterAdapter(
                 }
 
                 customTabsSessionHelper.generateNewCustomTabsSession(
+                    browserId,
                     context,
                     lifecycleScope,
                     customTabsSessionCallback = {
                         val customTabsIntent = buildCustomTabsIntent(it)
                         var eventsJob: Job? = null
-                        eventsJob = flowHelper.listenToEvents(lifecycleScope) { event ->
+                        eventsJob = flowHelper.listenToEvents(browserId, lifecycleScope) { event ->
                             when (event) {
                                 is OSIABEvents.OSIABCustomTabsEvent -> {
                                     if(isFirstLoad && event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_READY) {
@@ -155,19 +159,19 @@ class OSIABCustomTabsRouterAdapter(
                                         }
                                     }
                                     else if(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED) {
+                                        onBrowserFinished()
                                         eventsJob?.cancel()
                                     }
                                 }
-                                OSIABEvents.BrowserPageLoaded -> {
+                                is OSIABEvents.BrowserPageLoaded -> {
                                     if (isFirstLoad) {
                                         onBrowserPageLoaded()
                                         isFirstLoad = false
                                     }
                                 }
-                                OSIABEvents.BrowserFinished -> {
-                                    if(!isFirstLoad) {
-                                        onBrowserFinished()
-                                    }
+                                is OSIABEvents.BrowserFinished -> {
+                                    onBrowserFinished()
+                                    eventsJob?.cancel()
                                 }
                                 else -> {}
                             }
@@ -185,6 +189,7 @@ class OSIABCustomTabsRouterAdapter(
     private fun startCustomTabsControllerActivity(doClose: Boolean = false) {
         val intent = Intent(context, OSIABCustomTabsControllerActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            putExtra(OSIABEvents.EXTRA_BROWSER_ID, browserId)
         }
 
         if(doClose) {

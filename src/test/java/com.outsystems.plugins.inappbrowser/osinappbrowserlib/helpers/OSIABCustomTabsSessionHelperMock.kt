@@ -9,6 +9,7 @@ class OSIABCustomTabsSessionHelperMock: OSIABCustomTabsSessionHelperInterface {
     private val componentName = "OSIABTestComponent"
 
     override suspend fun generateNewCustomTabsSession(
+        browserId: String,
         context: Context,
         lifecycleScope: CoroutineScope,
         customTabsSessionCallback: (CustomTabsSession?) -> Unit

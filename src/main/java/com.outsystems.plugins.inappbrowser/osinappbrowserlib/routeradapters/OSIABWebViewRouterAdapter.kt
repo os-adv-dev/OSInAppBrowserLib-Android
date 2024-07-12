@@ -7,8 +7,10 @@ import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABFlowHe
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABWebViewOptions
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.views.OSIABWebViewActivity
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
+import java.util.UUID
 
 class OSIABWebViewRouterAdapter(
     context: Context,
@@ -25,6 +27,7 @@ class OSIABWebViewRouterAdapter(
     onBrowserPageLoaded = onBrowserPageLoaded,
     onBrowserFinished = onBrowserFinished
 ) {
+    private val browserId = UUID.randomUUID().toString()
 
     companion object {
         const val WEB_VIEW_URL_EXTRA = "WEB_VIEW_URL_EXTRA"
@@ -53,6 +56,7 @@ class OSIABWebViewRouterAdapter(
             else {
                 activity.finish()
                 setWebViewActivity(null)
+                onBrowserFinished()
                 completionHandler(true)
             }
         }
@@ -67,7 +71,8 @@ class OSIABWebViewRouterAdapter(
         lifecycleScope.launch {
             try {
                 // Collect the browser events
-                flowHelper.listenToEvents(lifecycleScope) { event ->
+                var eventsJob: Job? = null
+                eventsJob = flowHelper.listenToEvents(browserId, lifecycleScope) { event ->
                     when (event) {
                         is OSIABEvents.OSIABWebViewEvent -> {
                             setWebViewActivity(event.activity)
@@ -78,6 +83,7 @@ class OSIABWebViewRouterAdapter(
                         }
                         is OSIABEvents.BrowserFinished -> {
                             onBrowserFinished()
+                            eventsJob?.cancel()
                         }
                         else -> {}
                     }
@@ -87,6 +93,7 @@ class OSIABWebViewRouterAdapter(
                     Intent(
                         context, OSIABWebViewActivity::class.java
                     ).apply {
+                        putExtra(OSIABEvents.EXTRA_BROWSER_ID, browserId)
                         putExtra(WEB_VIEW_URL_EXTRA, url)
                         putExtra(WEB_VIEW_OPTIONS_EXTRA, options)
                     }

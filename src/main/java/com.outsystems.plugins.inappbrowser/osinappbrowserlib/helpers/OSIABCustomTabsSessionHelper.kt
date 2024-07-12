@@ -26,6 +26,7 @@ class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
     }
 
     private fun initializeCustomTabsSession(
+        browserId: String,
         context: Context,
         packageName: String,
         lifecycleScope: CoroutineScope,
@@ -37,7 +38,9 @@ class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
             object : CustomTabsServiceConnection() {
                 override fun onCustomTabsServiceConnected(name: ComponentName, client: CustomTabsClient) {
                     client.warmup(0L)
-                    customTabsSessionCallback(client.newSession(CustomTabsCallbackImpl(lifecycleScope)))
+                    customTabsSessionCallback(
+                        client.newSession(CustomTabsCallbackImpl(browserId, lifecycleScope))
+                    )
                 }
 
                 override fun onServiceDisconnected(name: ComponentName) {
@@ -47,13 +50,15 @@ class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
         )
     }
 
-    private inner class CustomTabsCallbackImpl(private val lifecycleScope: CoroutineScope) :
-        CustomTabsCallback() {
+    private inner class CustomTabsCallbackImpl(
+        private val browserId: String,
+        private val lifecycleScope: CoroutineScope
+    ) : CustomTabsCallback() {
         override fun onNavigationEvent(navigationEvent: Int, extras: Bundle?) {
             super.onNavigationEvent(navigationEvent, extras)
             val browserEvent = when (navigationEvent) {
-                NAVIGATION_FINISHED -> OSIABEvents.BrowserPageLoaded
-                TAB_HIDDEN -> OSIABEvents.BrowserFinished
+                NAVIGATION_FINISHED -> OSIABEvents.BrowserPageLoaded(browserId)
+                TAB_HIDDEN -> OSIABEvents.BrowserFinished(browserId)
                 else -> return
             }
             lifecycleScope.launch {
@@ -63,6 +68,7 @@ class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
     }
 
     override suspend fun generateNewCustomTabsSession(
+        browserId: String,
         context: Context,
         lifecycleScope: CoroutineScope,
         customTabsSessionCallback: (CustomTabsSession?) -> Unit
@@ -70,6 +76,7 @@ class OSIABCustomTabsSessionHelper: OSIABCustomTabsSessionHelperInterface {
         val packageName = getDefaultCustomTabsPackageName(context)
         packageName?.let {
             initializeCustomTabsSession(
+                browserId,
                 context,
                 it,
                 lifecycleScope,

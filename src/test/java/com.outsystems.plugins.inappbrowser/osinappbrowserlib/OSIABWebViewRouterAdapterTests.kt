@@ -67,7 +67,7 @@ class OSIABWebViewRouterAdapterTests {
     fun test_handleOpen_ableToOpenIt_returnsTrue_and_when_browserFinished_then_browserFinishedTriggered() =
         runTest(StandardTestDispatcher()) {
             val context = mockContext(ableToOpenURL = true)
-            val flowHelperMock = OSIABFlowHelperMock().apply { event = OSIABEvents.BrowserFinished }
+            val flowHelperMock = OSIABFlowHelperMock().apply { event = OSIABEvents.BrowserFinished("") }
             val sut = OSIABWebViewRouterAdapter(
                 context = context,
                 lifecycleScope = this,
