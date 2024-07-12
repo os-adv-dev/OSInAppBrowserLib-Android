@@ -5,43 +5,59 @@ import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsSession
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABClosable
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABRouter
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.canOpenURL
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABCustomTabsEvent
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABCustomTabsEventBus
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABCustomTabsSessionHelper
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABCustomTabsSessionHelperInterface
+import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABFlowHelperInterface
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABAnimation
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABCustomTabsOptions
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABViewStyle
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.views.OSIABCustomTabsControllerActivity
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class OSIABCustomTabsRouterAdapter(
-    private val context: Context,
-    private val lifecycleOwner: LifecycleOwner,
-    private val lifecycleScope: CoroutineScope,
+    context: Context,
+    lifecycleScope: CoroutineScope,
+    options: OSIABCustomTabsOptions,
+    flowHelper: OSIABFlowHelperInterface,
+    onBrowserPageLoaded: () -> Unit,
+    onBrowserFinished: () -> Unit,
     private val customTabsSessionHelper: OSIABCustomTabsSessionHelperInterface = OSIABCustomTabsSessionHelper(),
-    private val options: OSIABCustomTabsOptions,
-    private val onBrowserPageLoaded: () -> Unit,
-    private val onBrowserFinished: () -> Unit
-) : OSIABRouter<Boolean>, OSIABClosable {
+) : OSIABBaseRouterAdapter<OSIABCustomTabsOptions, Boolean>(
+    context = context,
+    lifecycleScope = lifecycleScope,
+    options = options,
+    flowHelper = flowHelper,
+    onBrowserPageLoaded = onBrowserPageLoaded,
+    onBrowserFinished = onBrowserFinished
+) {
 
     // for the browserPageLoaded event, which we only want to trigger on the first URL loaded in the CustomTabs instance
     private var isFirstLoad = true
 
-    override fun close() {
-        val intent = Intent(context, OSIABCustomTabsControllerActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            putExtra(OSIABCustomTabsControllerActivity.ACTION_CLOSE_CUSTOM_TABS, true)
+    override fun close(completionHandler: (Boolean) -> Unit) {
+        var closeEventJob: Job? = null
+
+        closeEventJob = flowHelper.listenToEvents(lifecycleScope) { event ->
+            when (event) {
+                is OSIABEvents.OSIABCustomTabsEvent -> {
+                    if(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED) {
+                        completionHandler(true)
+                    }
+                    else {
+                        completionHandler(false)
+
+                    }
+                    closeEventJob?.cancel()
+                }
+                else -> {}
+            }
         }
 
-        context.startActivity(intent)
+        startCustomTabsControllerActivity(true)
     }
 
     private fun buildCustomTabsIntent(customTabsSession: CustomTabsSession?): CustomTabsIntent {
@@ -106,11 +122,11 @@ class OSIABCustomTabsRouterAdapter(
             options.bottomSheetOptions?.let { bottomSheetOptions ->
                 if (bottomSheetOptions.isFixed) {
                     builder.setInitialActivityHeightPx(
-                        bottomSheetOptions.height,
+                        bottomSheetOptions.height.coerceAtLeast(1),
                         CustomTabsIntent.ACTIVITY_HEIGHT_FIXED
                     )
                 } else {
-                    builder.setInitialActivityHeightPx(bottomSheetOptions.height)
+                    builder.setInitialActivityHeightPx(bottomSheetOptions.height.coerceAtLeast(1))
                 }
             }
         }
@@ -131,59 +147,59 @@ class OSIABCustomTabsRouterAdapter(
 
                 customTabsSessionHelper.generateNewCustomTabsSession(
                     context,
-                    onEventReceived = { event ->
-                        when (event) {
-                            OSIABEvents.BrowserPageLoaded -> {
-                                if (isFirstLoad) {
-                                    onBrowserPageLoaded()
-                                    isFirstLoad = false
-                                }
-                            }
-                            OSIABEvents.BrowserFinished -> {
-                                onBrowserFinished()
-                            }
-                        }
-                    },
+                    lifecycleScope,
                     customTabsSessionCallback = {
                         val customTabsIntent = buildCustomTabsIntent(it)
-                        registerEventBus(customTabsIntent, uri, completionHandler)
-
-                        // This will force close any previous custom tabs activities.
-                        // The event bus will detect when to launch the new custom tabs instance
-                        close()
+                        var eventsJob: Job? = null
+                        eventsJob = flowHelper.listenToEvents(lifecycleScope) { event ->
+                            when (event) {
+                                is OSIABEvents.OSIABCustomTabsEvent -> {
+                                    if(isFirstLoad && event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_READY) {
+                                        try {
+                                            customTabsIntent.launchUrl(event.context, uri)
+                                            completionHandler(true)
+                                        } catch (e: Exception) {
+                                            completionHandler(false)
+                                        }
+                                    }
+                                    else if(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED) {
+                                        eventsJob?.cancel()
+                                    }
+                                }
+                                OSIABEvents.BrowserPageLoaded -> {
+                                    if (isFirstLoad) {
+                                        onBrowserPageLoaded()
+                                        isFirstLoad = false
+                                    }
+                                }
+                                OSIABEvents.BrowserFinished -> {
+                                    if(!isFirstLoad) {
+                                        onBrowserFinished()
+                                    }
+                                }
+                                else -> {}
+                            }
+                        }
                     }
                 )
+
+                startCustomTabsControllerActivity()
             } catch (e: Exception) {
                 completionHandler(false)
             }
         }
     }
 
-    private fun registerEventBus(
-        customTabsIntent: CustomTabsIntent,
-        uri: Uri,
-        completionHandler: (Boolean) -> Unit
-    ) {
-        val observer = Observer<OSIABCustomTabsEvent> { value ->
-            if (value.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_READY) {
-                try {
-                    customTabsIntent.launchUrl(value.context, uri)
-                    completionHandler(true)
-                } catch (e: Exception) {
-                    completionHandler(false)
-                }
-
-                // Remove the observer after handling the launch
-                OSIABCustomTabsEventBus.event.removeObservers(lifecycleOwner)
-            } else if(value.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED) {
-                // Relaunch Custom Tabs Controller
-                val customTabsControllerIntent = Intent(context, OSIABCustomTabsControllerActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(customTabsControllerIntent)
-            }
+    private fun startCustomTabsControllerActivity(doClose: Boolean = false) {
+        val intent = Intent(context, OSIABCustomTabsControllerActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
 
-        OSIABCustomTabsEventBus.event.observe(lifecycleOwner, observer)
+        if(doClose) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+            intent.putExtra(OSIABCustomTabsControllerActivity.ACTION_CLOSE_CUSTOM_TABS, true)
+        }
+
+        context.startActivity(intent)
     }
 }

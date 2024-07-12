@@ -5,9 +5,6 @@ import android.content.Intent
 import android.net.Uri
 
 class OSIABEngine {
-
-    private var activeRouter: OSIABRouter<Boolean>? = null
-
     /**
      * Trigger the external browser to open the passed `url`.
      * @param externalBrowserRouter Router responsible for handling the external browser opening logic.
@@ -35,7 +32,6 @@ class OSIABEngine {
         url: String,
         completionHandler: (Boolean) -> Unit
     ) {
-        activeRouter = customTabsRouter
         return customTabsRouter.handleOpen(url, completionHandler)
     }
 
@@ -50,23 +46,7 @@ class OSIABEngine {
         url: String,
         completionHandler: (Boolean) -> Unit
     ) {
-        activeRouter = webViewRouter
         return webViewRouter.handleOpen(url, completionHandler)
-    }
-
-    /**
-     * Closes the currently opened view if there is one.
-     * @param completionHandler The callback with the result of closing the opened view.
-     */
-    fun close(completionHandler: (Boolean) -> Unit) {
-        if(activeRouter is OSIABClosable) {
-            (activeRouter as OSIABClosable).close()
-            activeRouter = null
-            completionHandler(true)
-        }
-        else {
-            completionHandler(false)
-        }
     }
 }
 

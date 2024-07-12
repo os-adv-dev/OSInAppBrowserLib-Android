@@ -2,6 +2,7 @@ package com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers
 
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 interface OSIABFlowHelperInterface {
 
@@ -11,5 +12,5 @@ interface OSIABFlowHelperInterface {
      * @param scope CoroutineScope to launch
      * @param onEventReceived callback to send the collected event in
      */
-    fun listenToEvents(scope: CoroutineScope, onEventReceived: (OSIABEvents) -> Unit)
+    fun listenToEvents(scope: CoroutineScope, onEventReceived: (OSIABEvents) -> Unit): Job
 }

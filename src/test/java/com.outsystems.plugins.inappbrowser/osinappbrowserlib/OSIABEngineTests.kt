@@ -24,6 +24,7 @@ class OSIABEngineTests {
             assertFalse(result)
         }
     }
+
     @Test
     fun test_open_webViewWithoutIssues_doesOpenWebView() {
         makeSUT(true).openWebView(webViewRouterSpy, url) { result ->
@@ -53,36 +54,49 @@ class OSIABEngineTests {
     }
 
     @Test
-    fun test_close_noBrowserView_doesThrowError() {
-        makeSUT(true).close {
-            assertFalse(it)
-        }
-    }
-
-    @Test
-    fun test_close_webView_doesCloseView() {
-        val sut = makeSUT(true)
+    fun test_close_webViewWithoutIssues_doesCloseView() {
+        val sut = makeSUT(shouldOpenBrowser = true, shouldCloseBrowser = true)
         sut.openWebView(webViewRouterSpy, url) {
-            sut.close { didClose ->
+            webViewRouterSpy.close { didClose ->
                 assertTrue(didClose)
             }
         }
     }
 
     @Test
-    fun test_close_customTabs_doesCloseView() {
-        val sut = makeSUT(true)
+    fun test_close_webViewWithIssues_doesNotCloseView() {
+        val sut = makeSUT(shouldOpenBrowser = true, shouldCloseBrowser = false)
+        sut.openWebView(webViewRouterSpy, url) {
+            webViewRouterSpy.close { didClose ->
+                assertFalse(didClose)
+            }
+        }
+    }
+
+    @Test
+    fun test_close_customTabsWithoutIssues_doesCloseView() {
+        val sut = makeSUT(shouldOpenBrowser = true, shouldCloseBrowser = true)
         sut.openCustomTabs(customTabsRouterSpy, url) {
-            sut.close { didClose ->
+            customTabsRouterSpy.close { didClose ->
                 assertTrue(didClose)
             }
         }
     }
 
-    private fun makeSUT(shouldOpenBrowser: Boolean): OSIABEngine {
-        customTabsRouterSpy = OSIABRouterSpy(shouldOpenBrowser)
-        externalBrowserRouterSpy = OSIABRouterSpy(shouldOpenBrowser)
-        webViewRouterSpy = OSIABRouterSpy(shouldOpenBrowser)
+    @Test
+    fun test_close_customTabsWithIssues_doesNotCloseView() {
+        val sut = makeSUT(shouldOpenBrowser = true, shouldCloseBrowser = false)
+        sut.openCustomTabs(customTabsRouterSpy, url) {
+            customTabsRouterSpy.close { didClose ->
+                assertFalse(didClose)
+            }
+        }
+    }
+
+    private fun makeSUT(shouldOpenBrowser: Boolean, shouldCloseBrowser: Boolean = false): OSIABEngine {
+        customTabsRouterSpy = OSIABRouterSpy(shouldOpenBrowser, shouldCloseBrowser)
+        externalBrowserRouterSpy = OSIABRouterSpy(shouldOpenBrowser, shouldCloseBrowser)
+        webViewRouterSpy = OSIABRouterSpy(shouldOpenBrowser, shouldCloseBrowser)
         return OSIABEngine()
     }
 }

@@ -3,20 +3,16 @@ package com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers
 import android.content.ComponentName
 import android.content.Context
 import androidx.browser.customtabs.CustomTabsSession
-import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
+import kotlinx.coroutines.CoroutineScope
 
 class OSIABCustomTabsSessionHelperMock: OSIABCustomTabsSessionHelperInterface {
     private val componentName = "OSIABTestComponent"
-    var eventToReturn: OSIABEvents? = null
 
     override suspend fun generateNewCustomTabsSession(
-        context: Context, 
-        onEventReceived: (OSIABEvents) -> Unit,
+        context: Context,
+        lifecycleScope: CoroutineScope,
         customTabsSessionCallback: (CustomTabsSession?) -> Unit
     ) {
-        if (eventToReturn != null) {
-            onEventReceived(eventToReturn!!)
-        }
         customTabsSessionCallback(CustomTabsSession.createMockSessionForTesting(ComponentName(context, componentName)))
     }
 }

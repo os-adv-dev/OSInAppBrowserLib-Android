@@ -2,9 +2,6 @@ package com.outsystems.plugins.inappbrowser.osinappbrowserlib
 
 import android.content.Context
 import android.content.Intent
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.helpers.OSIABFlowHelperMock
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.models.OSIABWebViewOptions
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.routeradapters.OSIABWebViewRouterAdapter
@@ -16,23 +13,15 @@ import org.junit.Assert.fail
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class OSIABWebViewRouterAdapterTests {
-    private val lifecycle = LifecycleRegistry(mock(LifecycleOwner::class.java))
-    private val lifecycleOwner = mock(LifecycleOwner::class.java)
 
     private val url = "https://www.outsystems.com/"
     private val options = OSIABWebViewOptions()
-
-    init {
-        lifecycle.currentState = Lifecycle.State.RESUMED
-        Mockito.`when`(lifecycleOwner.lifecycle).thenReturn(lifecycle)
-    }
 
     @Test
     fun test_handleOpen_notAbleToOpenIt_returnsFalse() {
@@ -40,7 +29,6 @@ class OSIABWebViewRouterAdapterTests {
             val context = mockContext(ableToOpenURL = false)
             val sut = OSIABWebViewRouterAdapter(
                 context = context,
-                lifecycleOwner = lifecycleOwner,
                 lifecycleScope = this,
                 options = options,
                 flowHelper = OSIABFlowHelperMock(),
@@ -60,7 +48,6 @@ class OSIABWebViewRouterAdapterTests {
             val context = mockContext(ableToOpenURL = true)
             val sut = OSIABWebViewRouterAdapter(
                 context = context,
-                lifecycleOwner = lifecycleOwner,
                 lifecycleScope = this,
                 options = options,
                 flowHelper = OSIABFlowHelperMock(),
@@ -83,7 +70,6 @@ class OSIABWebViewRouterAdapterTests {
             val flowHelperMock = OSIABFlowHelperMock().apply { event = OSIABEvents.BrowserFinished }
             val sut = OSIABWebViewRouterAdapter(
                 context = context,
-                lifecycleOwner = lifecycleOwner,
                 lifecycleScope = this,
                 options = options,
                 flowHelper = flowHelperMock,
