@@ -145,6 +145,10 @@ class OSIABCustomTabsRouterAdapter(
                     context,
                     lifecycleScope,
                     customTabsSessionCallback = {
+                        if(it == null) {
+                            completionHandler(false)
+                            return@generateNewCustomTabsSession
+                        }
                         val customTabsIntent = buildCustomTabsIntent(it)
                         var eventsJob: Job? = null
                         eventsJob = flowHelper.listenToEvents(browserId, lifecycleScope) { event ->

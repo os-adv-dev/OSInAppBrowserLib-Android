@@ -4,12 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents.OSIABCustomTabsEvent
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 class OSIABCustomTabsControllerActivity: AppCompatActivity() {
@@ -30,13 +29,15 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
         }
         else {
             intent.getStringExtra(OSIABEvents.EXTRA_BROWSER_ID)?.let { browserId ->
-                sendCustomTabsEvent(
-                    OSIABCustomTabsEvent(
-                        browserId = browserId,
-                        action = ACTION_CUSTOM_TABS_READY,
-                        context = this@OSIABCustomTabsControllerActivity
+                lifecycleScope.launch {
+                    OSIABEvents.postEvent(
+                        OSIABCustomTabsEvent(
+                            browserId = browserId,
+                            action = ACTION_CUSTOM_TABS_READY,
+                            context = this@OSIABCustomTabsControllerActivity
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -53,25 +54,16 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
 
     override fun onDestroy() {
         intent.getStringExtra(OSIABEvents.EXTRA_BROWSER_ID)?.let { browserId ->
-            sendCustomTabsEvent(
-                OSIABCustomTabsEvent(
-                    browserId = browserId,
-                    action = ACTION_CUSTOM_TABS_DESTROYED,
-                    context = this@OSIABCustomTabsControllerActivity
+            runBlocking {
+                OSIABEvents.postEvent(
+                    OSIABCustomTabsEvent(
+                        browserId = browserId,
+                        action = ACTION_CUSTOM_TABS_DESTROYED,
+                        context = this@OSIABCustomTabsControllerActivity
+                    )
                 )
-            )
+            }
         }
         super.onDestroy()
-    }
-
-    /** Responsible for sending Custom Tabs Activity Events (READY, DESTROYED) to the event bus.
-     * @param event object to broadcast to the event bus
-     */
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun sendCustomTabsEvent(event: OSIABCustomTabsEvent) {
-        // Use GlobalScope so we can send destroyed event without relying on this activity lifecycle
-        GlobalScope.launch(Dispatchers.IO) {
-            OSIABEvents.postEvent(event)
-        }
     }
 }
