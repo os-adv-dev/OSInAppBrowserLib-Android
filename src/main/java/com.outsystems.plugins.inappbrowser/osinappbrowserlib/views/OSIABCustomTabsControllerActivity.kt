@@ -7,6 +7,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents
 import com.outsystems.plugins.inappbrowser.osinappbrowserlib.OSIABEvents.OSIABCustomTabsEvent
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -54,7 +59,10 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
 
     override fun onDestroy() {
         intent.getStringExtra(OSIABEvents.EXTRA_BROWSER_ID)?.let { browserId ->
-            runBlocking {
+            val customScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+            val deferred = CompletableDeferred<Unit>()
+
+            customScope.launch {
                 OSIABEvents.postEvent(
                     OSIABCustomTabsEvent(
                         browserId = browserId,
@@ -62,6 +70,11 @@ class OSIABCustomTabsControllerActivity: AppCompatActivity() {
                         context = this@OSIABCustomTabsControllerActivity
                     )
                 )
+                deferred.complete(Unit)
+            }
+
+            deferred.invokeOnCompletion {
+                customScope.cancel()
             }
         }
         super.onDestroy()
