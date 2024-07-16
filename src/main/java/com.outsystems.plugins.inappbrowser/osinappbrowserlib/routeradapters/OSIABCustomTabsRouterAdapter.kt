@@ -149,43 +149,48 @@ class OSIABCustomTabsRouterAdapter(
                             completionHandler(false)
                             return@generateNewCustomTabsSession
                         }
-                        val customTabsIntent = buildCustomTabsIntent(it)
-                        var eventsJob: Job? = null
-                        eventsJob = flowHelper.listenToEvents(browserId, lifecycleScope) { event ->
-                            when (event) {
-                                is OSIABEvents.OSIABCustomTabsEvent -> {
-                                    if(isFirstLoad && event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_READY) {
-                                        try {
-                                            customTabsIntent.launchUrl(event.context, uri)
-                                            completionHandler(true)
-                                        } catch (e: Exception) {
-                                            completionHandler(false)
-                                        }
-                                    }
-                                    else if(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED) {
-                                        onBrowserFinished()
-                                        eventsJob?.cancel()
-                                    }
-                                }
-                                is OSIABEvents.BrowserPageLoaded -> {
-                                    if (isFirstLoad) {
-                                        onBrowserPageLoaded()
-                                        isFirstLoad = false
-                                    }
-                                }
-                                is OSIABEvents.BrowserFinished -> {
-                                    onBrowserFinished()
-                                    eventsJob?.cancel()
-                                }
-                                else -> {}
-                            }
-                        }
+
+                        openCustomTabsIntent(it, uri, completionHandler)
                     }
                 )
 
                 startCustomTabsControllerActivity()
             } catch (e: Exception) {
                 completionHandler(false)
+            }
+        }
+    }
+
+    private fun openCustomTabsIntent(session: CustomTabsSession, uri: Uri, completionHandler: (Boolean) -> Unit) {
+        val customTabsIntent = buildCustomTabsIntent(session)
+        var eventsJob: Job? = null
+        eventsJob = flowHelper.listenToEvents(browserId, lifecycleScope) { event ->
+            when (event) {
+                is OSIABEvents.OSIABCustomTabsEvent -> {
+                    if(isFirstLoad && event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_READY) {
+                        try {
+                            customTabsIntent.launchUrl(event.context, uri)
+                            completionHandler(true)
+                        } catch (e: Exception) {
+                            completionHandler(false)
+                        }
+                    }
+                    else if(event.action == OSIABCustomTabsControllerActivity.ACTION_CUSTOM_TABS_DESTROYED) {
+                        onBrowserFinished()
+                        eventsJob?.cancel()
+                    }
+                }
+                is OSIABEvents.BrowserPageLoaded -> {
+                    if (isFirstLoad) {
+                        onBrowserPageLoaded()
+                        isFirstLoad = false
+                    }
+                }
+                is OSIABEvents.BrowserFinished -> {
+                    onBrowserFinished()
+                    eventsJob?.cancel()
+                }
+                else -> {}
             }
         }
     }

@@ -29,7 +29,7 @@
         <item name="android:id">@id/end_button</item>
         <item name="android:contentDescription">forward_button</item>
         <item name="android:paddingStart">8dp</item>
-        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingEnd">0dp</item>
         <item name="android:src">?attr/forwardButtonSrc</item>
     </style>
     <!-- URL -->
