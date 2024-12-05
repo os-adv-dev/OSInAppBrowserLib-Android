@@ -12,7 +12,7 @@ buildscript {
         if (System.getenv("SHOULD_PUBLISH") == "true") {
             classpath("io.github.gradle-nexus:publish-plugin:1.1.0")
         }
-        classpath 'com.android.tools.build:gradle:8.7.2'
+        classpath 'com.android.tools.build:gradle:8.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jacoco:org.jacoco.core:$jacocoVersion"
     }
@@ -121,7 +121,7 @@ dependencies {
     implementation 'androidx.browser:browser:1.8.0'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.7'
     implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'androidx.webkit:webkit:1.12.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
     implementation 'androidx.activity:activity-ktx:1.9.3'
 
