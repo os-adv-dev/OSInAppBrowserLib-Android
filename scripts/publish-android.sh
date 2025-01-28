@@ -20,8 +20,10 @@ else
     export SHOULD_PUBLISH=true
 
     printf %"s\n" "Attempting to build and publish version $THE_VERSION"
-    "$ANDROID_PATH"/gradlew clean build publishReleasePublicationToSonatypeRepository closeAndReleaseSonatypeStagingRepository --no-daemon --max-workers 1 -b "$ANDROID_PATH"/build.gradle -Pandroid.useAndroidX=true > $LOG_OUTPUT 2>&1
-    # "$ANDROID_PATH"/gradlew clean build publishReleasePublicationToSonatypeRepository --no-daemon --max-workers 1 -b "$ANDROID_PATH"/build.gradle -Pandroid.useAndroidX=true > $LOG_OUTPUT 2>&1
+    # Publish a release to the Maven repo
+    # "$ANDROID_PATH"/gradlew clean build publishReleasePublicationToSonatypeRepository closeAndReleaseSonatypeStagingRepository --no-daemon --max-workers 1 -b "$ANDROID_PATH"/build.gradle -Pandroid.useAndroidX=true > $LOG_OUTPUT 2>&1
+    # Stage a version
+    "$ANDROID_PATH"/gradlew clean build publishReleasePublicationToSonatypeRepository --no-daemon --max-workers 1 -b "$ANDROID_PATH"/build.gradle -Pandroid.useAndroidX=true > $LOG_OUTPUT 2>&1
 
     echo $RESULT
 
