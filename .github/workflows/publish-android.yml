@@ -4,7 +4,7 @@ name: Publish Native Android Library
 on:
   workflow_dispatch:
   push:
-    branches: [ test-publish-android ]
+    branches: [test-publish-android]
 
 jobs:
   publish-android:
