@@ -1,6 +1,10 @@
 name: Publish Native Android Library
 
-on: workflow_dispatch
+#on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches: [test-publish-android]
 
 jobs:
   publish-android:
