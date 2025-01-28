@@ -18,7 +18,7 @@ artifacts {
     archives androidSourcesJar
 }
 
-group = 'com.capacitorjs'
+group = 'io.ionic.libs'
 version = LIB_VERSION
 
 afterEvaluate {
@@ -26,7 +26,7 @@ afterEvaluate {
         publications {
             release(MavenPublication) {
                 // Coordinates
-                groupId 'com.capacitorjs'
+                groupId 'io.ionic.libs'
                 artifactId 'osinappbrowser-android'
                 version LIB_VERSION
 
