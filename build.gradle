@@ -5,10 +5,7 @@ buildscript {
         google()
         mavenCentral()
         maven {
-            url = uri("https://plugins.gradle.org/m2/"),
-        }
-        maven { 
-            url = uri ("https://jitpack.io")
+            url = uri("https://plugins.gradle.org/m2/")
         }
     }
     dependencies {
@@ -41,6 +38,7 @@ if (System.getenv("SHOULD_PUBLISH") == "true") {
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 apply plugin: "jacoco"
+apply plugin: 'maven'
 
 android {
     namespace "com.outsystems.plugins.inappbrowser.osinappbrowserlib"
