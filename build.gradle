@@ -109,6 +109,17 @@ android {
 
     publishing {
         singleVariant("release")
+        publications {
+            release(MavenPublication) {
+                groupId = 'io.jitpack'
+                artifactId = 'library'
+                version = '1.0'
+
+                afterEvaluate {
+                    from components.release
+                }
+            }
+        }
     }
 }
 
