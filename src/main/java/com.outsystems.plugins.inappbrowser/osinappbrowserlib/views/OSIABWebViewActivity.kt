@@ -310,7 +310,7 @@ class OSIABWebViewActivity : AppCompatActivity() {
             if (isFirstLoad && !hasLoadError) {
                 sendWebViewEvent(OSIABEvents.BrowserPageLoaded(browserId))
                 isFirstLoad = false
-            } else {
+            } else if (!hasLoadError){
                 val data: Map<String, Any> = mapOf("url" to url);
                 sendWebViewEvent(OSIABEvents.BrowserNavigated(browserId, data))
             }
