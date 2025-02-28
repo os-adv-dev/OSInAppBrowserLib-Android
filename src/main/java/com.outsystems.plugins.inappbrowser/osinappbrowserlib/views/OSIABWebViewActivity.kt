@@ -306,10 +306,13 @@ class OSIABWebViewActivity : AppCompatActivity() {
             }
         }
 
-        override fun onPageFinished(view: WebView?, url: String?) {
+        override fun onPageFinished(view: WebView?, url: String) {
             if (isFirstLoad && !hasLoadError) {
                 sendWebViewEvent(OSIABEvents.BrowserPageLoaded(browserId))
                 isFirstLoad = false
+            } else {
+                val data: Map<String, Any> = mapOf("url" to url);
+                sendWebViewEvent(OSIABEvents.BrowserNavigated(browserId, data))
             }
 
             // set back to false so that the next successful load

@@ -25,6 +25,7 @@ class OSIABCustomTabsRouterAdapter(
     flowHelper: OSIABFlowHelperInterface,
     onBrowserPageLoaded: () -> Unit,
     onBrowserFinished: () -> Unit,
+    onBrowserNavigated: (data: Map<String, Any>?) -> Unit,
     private val customTabsSessionHelper: OSIABCustomTabsSessionHelperInterface = OSIABCustomTabsSessionHelper(),
 ) : OSIABBaseRouterAdapter<OSIABCustomTabsOptions, Boolean>(
     context = context,
@@ -32,7 +33,8 @@ class OSIABCustomTabsRouterAdapter(
     options = options,
     flowHelper = flowHelper,
     onBrowserPageLoaded = onBrowserPageLoaded,
-    onBrowserFinished = onBrowserFinished
+    onBrowserFinished = onBrowserFinished,
+    onBrowserNavigated = onBrowserNavigated
 ) {
 
     private val browserId = UUID.randomUUID().toString()

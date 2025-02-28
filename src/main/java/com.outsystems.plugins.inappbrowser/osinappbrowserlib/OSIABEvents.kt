@@ -10,6 +10,7 @@ sealed class OSIABEvents {
 
     data class BrowserPageLoaded(override val browserId: String) : OSIABEvents()
     data class BrowserFinished(override val browserId: String) : OSIABEvents()
+    data class BrowserNavigated(override val browserId: String, val data: Map<String, Any> ) : OSIABEvents()
 
     data class OSIABCustomTabsEvent(
         override val browserId: String,

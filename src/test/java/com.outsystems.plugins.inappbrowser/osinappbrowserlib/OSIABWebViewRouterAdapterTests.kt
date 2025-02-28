@@ -33,7 +33,8 @@ class OSIABWebViewRouterAdapterTests {
                 options = options,
                 flowHelper = OSIABFlowHelperMock(),
                 onBrowserPageLoaded = {}, // do nothing
-                onBrowserFinished = {}, // do nothing
+                onBrowserFinished = {},
+                onBrowserNavigated = {},// do nothing
             )
 
             sut.handleOpen(url) {
@@ -56,6 +57,9 @@ class OSIABWebViewRouterAdapterTests {
                 },
                 onBrowserFinished = {
                     fail()
+                },
+                onBrowserNavigated = {
+                    //TODO
                 }
             )
             sut.handleOpen(url) {
@@ -78,6 +82,9 @@ class OSIABWebViewRouterAdapterTests {
                 },
                 onBrowserFinished = {
                     assertTrue(true) // onBrowserFinished was called
+                },
+                onBrowserNavigated = {
+                    //TODO
                 }
             )
             sut.handleOpen(url) {
