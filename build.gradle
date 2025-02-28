@@ -111,8 +111,8 @@ android {
         singleVariant("release")
         publications {
             release(MavenPublication) {
-                groupId = 'io.jitpack'
-                artifactId = 'library'
+                groupId = 'com.github.os-adv-dev'
+                artifactId = 'OSInAppBrowserLib-Android'
                 version = '1.0'
 
                 afterEvaluate {
