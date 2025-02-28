@@ -39,6 +39,7 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 apply plugin: "jacoco"
 apply plugin: 'maven'
+group = 'com.github.os-adv-dev'
 
 android {
     namespace "com.outsystems.plugins.inappbrowser.osinappbrowserlib"
