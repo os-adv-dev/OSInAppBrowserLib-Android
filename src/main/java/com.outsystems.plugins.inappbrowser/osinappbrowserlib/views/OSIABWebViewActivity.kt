@@ -3,13 +3,14 @@ package com.outsystems.plugins.inappbrowser.osinappbrowserlib.views
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.view.Gravity
 import android.util.Log
-import android.graphics.Bitmap
+import android.view.Gravity
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.GeolocationPermissions
@@ -357,6 +358,14 @@ class OSIABWebViewActivity : AppCompatActivity() {
                 urlString.startsWith("http:") || urlString.startsWith("https:") -> {
                     view?.loadUrl(urlString)
                     if (showURL) urlText.text = urlString
+                    true
+                }
+
+                !urlString.startsWith("http:") && !urlString.startsWith("https:") && urlString.matches( Regex("^[A-Za-z0-9+.-]*://.*?\$")) -> {
+                    if (urlString.startsWith(packageName)){ //allows deep links to current app
+                        val data: Map<String, Any> = mapOf("url" to urlString);
+                        sendWebViewEvent(OSIABEvents.BrowserNavigated(browserId, data))
+                    }
                     true
                 }
                 else -> false
